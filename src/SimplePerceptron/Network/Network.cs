@@ -62,19 +62,19 @@ namespace SimplePerceptron.Network
             for (int i = 0; i < _parameters.HiddenLayersCount; i++)
             {
                 int layerNum = i + 1;
-                var hidderParams = _parameters.HiddenLayers[i];
-                hiddenNeurons[i] = new HiddenNeuron[hidderParams.Count + 1];
-                for (int j = 0; j < hidderParams.Count; j++)
+                var hiddenParams = _parameters.HiddenLayers[i];
+                hiddenNeurons[i] = new HiddenNeuron[hiddenParams.Count + 1];
+                for (int j = 0; j < hiddenParams.Count; j++)
                 {
-                    hiddenNeurons[i][j] = new HiddenNeuron(hidderParams.Activation);
+                    hiddenNeurons[i][j] = new HiddenNeuron(hiddenParams.Activation);
                 }
-                if (hidderParams.HasBias)
+                if (hiddenParams.HasBias)
                 {
-                    hiddenNeurons[i][hidderParams.Count] = new BiasNeuron();
+                    hiddenNeurons[i][hiddenParams.Count] = new BiasNeuron();
                 }
                 else //удаляем место под bias
                 {
-                    hiddenNeurons[i] = hiddenNeurons[i].SkipLast(1).ToArray();
+                    hiddenNeurons[i] = hiddenNeurons[i].Take(hiddenNeurons.Length - 1).ToArray();
                 }
 
                 _hiddenLayers[i] = new HiddenLayer(layerNum, hiddenNeurons[i]);
