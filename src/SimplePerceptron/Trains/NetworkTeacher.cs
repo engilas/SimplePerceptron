@@ -4,21 +4,34 @@ using SimplePerceptron.Network;
 
 namespace SimplePerceptron.Trains
 {
-    class NetworkTeacher
+    public class NetworkTeacher
     {
         private readonly INetwork _network;
         private readonly TrainSet[] _trainSet;
         private readonly TeacherParameters _parameters;
 
-
-        private bool _reinitWeights;
-        private bool _stopLearn;
-
         private double _epochError;
+        private double _lastEpochError;
         private ulong _epochCount;
 
         private double[] _bestParams;
         private double _minEpochError = Double.MaxValue;
+        private bool _activeLearning;
+
+        private bool _reinitWeights;
+        private bool _stopLearn;
+        private int _setCounter;
+
+        public bool IsLearning => _activeLearning;
+
+        public int CurrentDataSet
+        {
+            get
+            {
+                if (!IsLearning) return 0;
+                return _setCounter;
+            }
+        }
 
         public NetworkTeacher(INetwork network, TrainSet[] trainSet, TeacherParameters parameters)
         {
@@ -46,6 +59,7 @@ namespace SimplePerceptron.Trains
         public void Learn()
         {
             _stopLearn = false;
+            _activeLearning = true;
             _epochError = 1;
             _epochCount = 0;
 
@@ -54,14 +68,20 @@ namespace SimplePerceptron.Trains
 
             double[][] results = new double[len][];
             double[][] ideals = new double[len][];
-            
 
-            while (!_stopLearn || _epochError > _parameters.MinErrorEpsilon)
+            double lastEpochError = 1;
+
+            while (!_stopLearn && _epochError > _parameters.MinErrorEpsilon)
             {
                 _epochCount++;
 
+                double error;
+
                 for (int i = 0; i < len; i++)
                 {
+                    if (_stopLearn) break;
+                    _setCounter = i;
+
                     var set = _trainSet[i];
 
                     _network.SetInput(set.Input);
@@ -71,10 +91,12 @@ namespace SimplePerceptron.Trains
                     _network.Learn(ideals[i]);
                 }
 
-                double error = _network.CalcError(results, ideals);
+                error = _network.CalcSetError(results, ideals);
 
+                _lastEpochError = _epochError;
                 _epochError = error / outputCount;
 
+                OnEpochResults();
 
                 if (_parameters.MemorizeBestWeights && _epochError < _minEpochError)
                 {
@@ -85,11 +107,21 @@ namespace SimplePerceptron.Trains
                 if (_reinitWeights)
                     DoReinitWeights();
             }
+            _activeLearning = false;
+
         }
 
         public string SerializeBestWeights()
         {
             return JsonConvert.SerializeObject(_bestParams);
+        }
+
+        public event EventHandler<EpochErrorEventArgs> EpochResults;
+
+        protected virtual void OnEpochResults()
+        {
+            EpochResults?.Invoke(this,
+                new EpochErrorEventArgs(_epochError, _lastEpochError - _epochError, _epochCount));
         }
     }
 }

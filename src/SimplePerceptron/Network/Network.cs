@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using Newtonsoft.Json;
 using SimplePerceptron.Network.Layers;
 using SimplePerceptron.Serialization;
@@ -128,6 +129,16 @@ namespace SimplePerceptron.Network
             }
         }
 
+        public void UpdateLearnSpeed(double value)
+        {
+            _parameters.LearnParameters.LearnSpeed = value;
+        }
+
+        public void UpdateMoment(double value)
+        {
+            _parameters.LearnParameters.Moment = value;
+        }
+
         public double[] GetResult(double[] input)
         {
             _inputLayer.SetInput(input);
@@ -145,6 +156,13 @@ namespace SimplePerceptron.Network
         }
 
         public double[] Weights => _sinapses.Select(x => x.Weight).ToArray();
+
+        public double[] Iterate(double[] input)
+        {
+            ResetOutput();
+            SetInput(input);
+            return GetOutput();
+        }
 
         public string Serialize()
         {
@@ -183,7 +201,18 @@ namespace SimplePerceptron.Network
             ResetOutput();
         }
 
-        public double CalcError(double[][] result, double[][] ideal)
+        public double CalcIterationError(double[] result, double[] ideal)
+        {
+            double error = 0;
+            for (int i = 0; i < result.Length; i++)
+            {
+                error += Math.Pow(ideal[i] - result[i], 2) / 2;
+            }
+            error /= result.Length;
+            return error;
+        }
+
+        public double CalcSetError(double[][] result, double[][] ideal)
         {
             double error = 0;
             for (int i = 0; i < result.Length; i++)
