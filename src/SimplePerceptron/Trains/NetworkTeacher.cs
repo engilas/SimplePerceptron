@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Newtonsoft.Json;
 using SimplePerceptron.Network;
 
@@ -91,7 +92,9 @@ namespace SimplePerceptron.Trains
                     _network.Learn(ideals[i]);
                 }
 
-                error = _network.CalcSetError(results, ideals);
+                // если цикл по сету был прерван (_stopLearn)
+                error = _network.CalcSetError(results.Take(_setCounter + 1).ToArray(),
+                    ideals.Take(_setCounter + 1).ToArray());
 
                 _lastEpochError = _epochError;
                 _epochError = error / outputCount;
