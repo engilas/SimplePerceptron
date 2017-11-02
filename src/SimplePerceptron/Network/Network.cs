@@ -19,6 +19,19 @@ namespace SimplePerceptron.Network
         private OutputLayer _outputLayer;
         private List<Sinapse> _sinapses;
 
+        public double[] Weights => _sinapses.Select(x => x.Weight).ToArray();
+
+        public double LearnSpeed
+        {
+            get => _parameters.LearnParameters.LearnSpeed;
+            set => _parameters.LearnParameters.LearnSpeed = value;
+        }
+
+        public double Moment
+        {
+            get => _parameters.LearnParameters.Moment;
+            set => _parameters.LearnParameters.Moment = value;
+        }
 
         private IEnumerable<ILayer> Layers
         {
@@ -128,16 +141,7 @@ namespace SimplePerceptron.Network
                 }
             }
         }
-
-        public void UpdateLearnSpeed(double value)
-        {
-            _parameters.LearnParameters.LearnSpeed = value;
-        }
-
-        public void UpdateMoment(double value)
-        {
-            _parameters.LearnParameters.Moment = value;
-        }
+        
 
         public double[] GetResult(double[] input)
         {
@@ -155,7 +159,7 @@ namespace SimplePerceptron.Network
             }
         }
 
-        public double[] Weights => _sinapses.Select(x => x.Weight).ToArray();
+        
 
         public double[] Iterate(double[] input)
         {

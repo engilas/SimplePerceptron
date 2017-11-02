@@ -2,8 +2,8 @@
 {
     public interface INetwork
     {
-        void UpdateLearnSpeed(double value);
-        void UpdateMoment(double value);
+        double LearnSpeed { get; set; }
+        double Moment { get; set; }
 
         void SetInput(double[] input);
         double[] GetOutput();
