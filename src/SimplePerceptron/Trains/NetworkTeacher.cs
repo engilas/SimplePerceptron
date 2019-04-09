@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Newtonsoft.Json;
 using SimplePerceptron.Network;
 
@@ -17,10 +18,9 @@ namespace SimplePerceptron.Trains
 
         private double[] _bestParams;
         private double _minEpochError = Double.MaxValue;
-        private bool _activeLearning;
+        private volatile bool _activeLearning;
 
         private bool _reinitWeights;
-        private bool _stopLearn;
         private int _setCounter;
 
         public bool IsLearning => _activeLearning;
@@ -46,20 +46,14 @@ namespace SimplePerceptron.Trains
             _reinitWeights = true;
         }
 
-        public void StopLearn()
-        {
-            _stopLearn = true;
-        }
-
         private void DoReinitWeights()
         {
             _network.ReinitNetworkWeights();
             _reinitWeights = false;
         }
 
-        public void Learn()
+        public void Learn(CancellationToken cancellationToken)
         {
-            _stopLearn = false;
             _activeLearning = true;
             _epochError = 1;
             _epochCount = 0;
@@ -72,7 +66,7 @@ namespace SimplePerceptron.Trains
 
             double lastEpochError = 1;
 
-            while (!_stopLearn && _epochError > _parameters.MinErrorEpsilon)
+            while (!cancellationToken.IsCancellationRequested && _epochError > _parameters.MinErrorEpsilon)
             {
                 _epochCount++;
 
@@ -80,7 +74,7 @@ namespace SimplePerceptron.Trains
 
                 for (int i = 0; i < len; i++)
                 {
-                    if (_stopLearn) break;
+                    if (cancellationToken.IsCancellationRequested) break;
                     _setCounter = i;
 
                     var set = _trainSet[i];
@@ -92,7 +86,7 @@ namespace SimplePerceptron.Trains
                     _network.Learn(ideals[i]);
                 }
 
-                // если цикл по сету был прерван (_stopLearn)
+                // если цикл по сету был прерван (cancellationToken)
                 error = _network.CalcSetError(results.Take(_setCounter + 1).ToArray(),
                     ideals.Take(_setCounter + 1).ToArray());
 
