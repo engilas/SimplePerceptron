@@ -66,7 +66,7 @@ var cts = new CancellationTokenSource();
 var task = Task.Run(() => teacher.Learn(cts.Token));
 ```
 
-When train is complete, iterate over the points 
+When learning is complete, iterate over the points 
 
 ```C#
 for (double x = 0; x <= 1; x += 0.05)
