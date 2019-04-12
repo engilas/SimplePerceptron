@@ -40,7 +40,7 @@ INetwork network = new Network(networkParameters);
 
 First, create a trainset
 
-If dot above or below line (y = x)
+Is dot above or below line (y = x)
 ```C#
 static IEnumerable<TrainSet> CreateTrainSet()
 {
